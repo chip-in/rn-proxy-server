@@ -1,6 +1,7 @@
 import webClient from 'request';
 import { ResourceNode, ServiceEngine, Proxy, Subscriber } from '@chip-in/resource-node';
 import http from 'http';
+import https from 'https';
 
 process.on('unhandledRejection', console.dir);
 
@@ -44,11 +45,20 @@ class OneToOneProxyServer extends ServiceEngine{
     this.path = option.path;
     this.mode = option.mode;
     this.forwardPath = option.forwardPath;
+    var agentOptions = {
+      keepAlive : ((option.keepAlive != null) ? option.keepAlive : true),
+      keepAliveMsecs : option.keepAliveMsecs || 10000,
+      maxSockets : option.maxSockets || 32,
+      maxFreeSockets : option.maxFreeSockets || 8,
+      timeout  : option.timeout || 60000,
+    }
+    this.agent = this.agent = (this.forwardPath.indexOf("https://") == 0) ? 
+      new https.Agent(agentOptions) : new http.Agent(agentOptions);
   }
   
   start(node) {
     return Promise.resolve()
-      .then(()=>node.mount(this.path, this.mode, new ReverseProxy(node, this.path, this.forwardPath)))
+      .then(()=>node.mount(this.path, this.mode, new ReverseProxy(node, this.path, this.forwardPath, this.agent)))
       .then((ret)=>this.mountId = ret)
       .then(()=>node.logger.info("rn-proxy-server started. Try to access '" + coreNodeUrl + this.path + "'"))
   }
@@ -60,7 +70,7 @@ class OneToOneProxyServer extends ServiceEngine{
 }
 
 class ReverseProxy extends Proxy {
-  constructor(rnode, path, forwardPath) {
+  constructor(rnode, path, forwardPath, agent) {
     super();
     this.rnode = rnode;
     if (path == null) {
@@ -68,6 +78,7 @@ class ReverseProxy extends Proxy {
     }
     this.basePath = path[path.length - 1] !== "/" ? path + "/" : path;
     this.forwardPath = forwardPath[forwardPath.length - 1] === "/" ? forwardPath.substr(0, forwardPath.length - 1) : forwardPath;
+    this.agent = agent;
   }
   onReceive(req, res) {
     return Promise.resolve()
@@ -94,6 +105,7 @@ class ReverseProxy extends Proxy {
 
           var option = {
             url,
+            agent : this.agent,
             headers: Object.assign({}, req.headers),
             encoding: null,
             method : req.method || "GET"
