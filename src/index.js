@@ -132,6 +132,9 @@ class ReverseProxy extends Proxy {
     }
     if (option.headers) {
       delete option.headers["content-length"];
+
+      // Body has already been decoded by core-node.
+      delete option.headers["content-encoding"];
     }
   }
 }
