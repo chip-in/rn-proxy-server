@@ -1,6 +1,6 @@
 {
   "name": "rn-proxy-server",
-  "version": "0.1.9",
+  "version": "0.1.10-rc9476add7.0",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
@@ -11,9 +11,9 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "@chip-in/resource-node": "^0.1.10",
-    "express": "^4.16.1",
-    "request": "^2.87.0"
+    "@chip-in/resource-node": "0.1.16-rc01775afc.6",
+    "express": "^4.18.2",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.8",
