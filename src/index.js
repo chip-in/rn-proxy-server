@@ -42,8 +42,11 @@ class SignalHandler {
   _execShutdown() {
     this.node.stop().then(() => {
       this.node.logger.info('Shutdown process has completed.')
-      setImmediate(function () {
-        process.exit(0)
+			process.exit(0)
+    }).catch((e)=>{
+      this.node.logger.error('Shutdown process has failed.', e)
+      setImmediate(function() {
+        process.exit(1)
       })
     })
   }
@@ -192,13 +195,20 @@ rnode.registerServiceClasses({
 if (jwtToken) {
   rnode.setJWTAuthorization(jwtToken, jwtRefreshPath)
 }
+new SignalHandler(rnode)
 rnode
   .start()
   .then(() => {
-    new SignalHandler(rnode)
     rnode.logger.info('Succeeded to start resource-node')
   })
   .catch((e) => {
     rnode.logger.info('Failed to start resource-node', e)
-    rnode.stop()
+    rnode.stop().then(() => {
+      process.exit(0);
+    }).catch((e)=>{
+      this.node.logger.error("Failed to start and shutdown process has failed.", e);
+      setImmediate(function() {
+        process.exit(1);
+      });
+    })
   })
