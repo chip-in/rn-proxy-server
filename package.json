@@ -1,6 +1,6 @@
 {
   "name": "rn-proxy-server",
-  "version": "0.1.12-rcee76b3f8.0",
+  "version": "0.1.12",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
